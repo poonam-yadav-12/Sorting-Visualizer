@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sorting Visualizer</title>
+  <style>
+    #container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 400px;
+      border: 1px solid #ccc;
+      margin-top: 20px;
+    }
+
+    .bar {
+      width: 20px;
+      background-color: #3498db;
+      margin: 2px;
+    }
+
+    button {
+      margin: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Comparision Sorting Algorithms</h1>
+  <button onclick="randomizeArray()">Randomize Array</button>
+  <button onclick="insertionSort()">Insertion Sort</button>
+  <button onclick="selectionSort()">Selection Sort</button>
+  <button onclick="bubbleSort()">Bubble Sort</button>
+  <button onclick="quickSort()">Quick Sort</button>
+  <button onclick="mergeSort()">Merge Sort</button>
+  <button onclick="shellSort()">Shell Sort</button>
+  <button onclick="changeSize()">Change Size</button>
+  <div id="container"></div>
+
+  <script>
+    let bars = [];
+    let isSorting = false;
+
+    function generateBars() {
+      const container = document.getElementById("container");
+      container.innerHTML = "";
+      for (let i = 0; i < bars.length; i++) {
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.style.height = bars[i] + "px";
+        container.appendChild(bar);
+      }
+    }
+
+    function randomizeArray() {
+      if (isSorting) return;
+      bars = [];
+      for (let i = 0; i < 50; i++) {
+        bars.push(Math.floor(Math.random() * 300) + 20);
+      }
+      generateBars();
+    }
+
+    async function delay(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function insertionSort() {
+      if (isSorting) return;
+      isSorting = true;
+      for (let i = 1; i < bars.length; i++) {
+        let key = bars[i];
+        let j = i - 1;
+        while (j >= 0 && bars[j] > key) {
+          bars[j + 1] = bars[j];
+          await delay(50);
+          generateBars();
+          j = j - 1;
+        }
+        bars[j + 1] = key;
+      }
+      isSorting = false;
+    }
+
+    async function selectionSort() {
+      if (isSorting) return;
+      isSorting = true;
+      for (let i = 0; i < bars.length - 1; i++) {
+        let minIndex = i;
+        for (let j = i + 1; j < bars.length; j++) {
+          if (bars[j] < bars[minIndex]) {
+            minIndex = j;
+          }
+        }
+        if (minIndex !== i) {
+          let temp = bars[i];
+          bars[i] = bars[minIndex];
+          bars[minIndex] = temp;
+          await delay(50);
+          generateBars();
+        }
+      }
+      isSorting = false;
+    }
+
+    async function bubbleSort() {
+      if (isSorting) return;
+      isSorting = true;
+      let n = bars.length;
+      for (let i = 0; i < n - 1; i++) {
+        for (let j = 0; j < n - i - 1; j++) {
+          if (bars[j] > bars[j + 1]) {
+            let temp = bars[j];
+            bars[j] = bars[j + 1];
+            bars[j + 1] = temp;
+            await delay(50);
+            generateBars();
+          }
+        }
+      }
+      isSorting = false;
+    }
+
+    async function quickSort() {
+      if (isSorting) return;
+      isSorting = true;
+
+      async function partition(low, high) {
+        let pivot = bars[high];
+        let i = low - 1;
+
+        for (let j = low; j <= high - 1; j++) {
+          if (bars[j] < pivot) {
+            i++;
+            let temp = bars[i];
+            bars[i] = bars[j];
+            bars[j] = temp;
+            await delay(50);
+            generateBars();
+          }
+        }
+
+        let temp = bars[i + 1];
+        bars[i + 1] = bars[high];
+        bars[high] = temp;
+        await delay(50);
+        generateBars();
+        return i + 1;
+      }
+
+      async function quickSortRecursive(low, high) {
+        if (low < high) {
+          let pivotIndex = await partition(low, high);
+          await quickSortRecursive(low, pivotIndex - 1);
+          await quickSortRecursive(pivotIndex + 1, high);
+        }
+      }
+
+      await quickSortRecursive(0, bars.length - 1);
+      isSorting = false;
+    }
+
+    async function mergeSort() {
+      if (isSorting) return;
+      isSorting = true;
+
+      async function merge(low, mid, high) {
+        let n1 = mid - low + 1;
+        let n2 = high - mid;
+
+        let leftArray = new Array(n1);
+        let rightArray = new Array(n2);
+
+        for (let i = 0; i < n1; i++) {
+          leftArray[i] = bars[low + i];
+        }
+        for (let j = 0; j < n2; j++) {
+          rightArray[j] = bars[mid + 1 + j];
+        }
+
+        let i = 0;
+        let j = 0;
+        let k = low;
+
+        while (i < n1 && j < n2) {
+          if (leftArray[i] <= rightArray[j]) {
+            bars[k] = leftArray[i];
+            i++;
+          } else {
+            bars[k] = rightArray[j];
+            j++;
+          }
+          await delay(50);
+          generateBars();
+          k++;
+        }
+
+        while (i < n1) {
+          bars[k] = leftArray[i];
+          i++;
+          k++;
+        }
+
+        while (j < n2) {
+          bars[k] = rightArray[j];
+          j++;
+          k++;
+        }
+      }
+
+      async function mergeSortRecursive(low, high) {
+        if (low < high) {
+          let mid = Math.floor((low + high) / 2);
+          await mergeSortRecursive(low, mid);
+          await mergeSortRecursive(mid + 1, high);
+          await merge(low, mid, high);
+        }
+      }
+
+      await mergeSortRecursive(0, bars.length - 1);
+      isSorting = false;
+    }
+
+    async function shellSort() {
+      if (isSorting) return;
+      isSorting = true;
+
+      let n = bars.length;
+      for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+          let temp = bars[i];
+          let j;
+          for (j = i; j >= gap && bars[j - gap] > temp; j -= gap) {
+            bars[j] = bars[j - gap];
+            await delay(50);
+            generateBars();
+          }
+          bars[j] = temp;
+        }
+      }
+      isSorting = false;
+    }
+
+    async function changeSize() {
+      if (isSorting) return;
+      for (let i = 0; i < bars.length; i++) {
+        bars[i] = Math.floor(Math.random() * 300) + 20;
+      }
+      generateBars();
+    }
+
+    randomizeArray();
+  </script>
+</body>
+</html>
